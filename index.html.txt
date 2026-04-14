@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>OmbreNotebook · 任务面板</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, 'Segoe UI', 'Helvetica Neue', sans-serif;
+      background: #f9f4ef;
+      color: #2e241e;
+      scroll-behavior: smooth;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* 主布局容器 */
+    .app-wrapper {
+      display: flex;
+      flex: 1;
+      max-width: 1600px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 24px 32px 24px 24px;
+      gap: 28px;
+    }
+
+    /* ----- 左侧栏：开发者信息（左上角区域，可点击）----- */
+    .dev-corner {
+      flex: 0 0 260px;
+      background: rgba(255, 250, 240, 0.7);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-radius: 32px;
+      padding: 24px 18px;
+      box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.08);
+      border: 1px solid #ede3d7;
+      height: fit-content;
+      position: sticky;
+      top: 20px;
+      transition: box-shadow 0.2s;
+    }
+
+    .dev-corner:hover {
+      box-shadow: 0 20px 35px -8px rgba(90, 60, 40, 0.12);
+    }
+
+    /* 开发者卡片点击区域——整个卡片可点 */
+    .dev-clickable {
+      cursor: pointer;
+      display: block;
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.15s;
+    }
+
+    .dev-clickable:active {
+      transform: scale(0.99);
+    }
+
+    .dev-avatar {
+      width: 100%;
+      aspect-ratio: 1/1;
+      border-radius: 28px;
+      overflow: hidden;
+      background: #dccfc4;
+      margin-bottom: 20px;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.05);
+    }
+
+    .dev-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* 视频区域：跳过，只留图片占位，显示友好提示 */
+    .dev-video-placeholder {
+      width: 100%;
+      aspect-ratio: 16/9;
+      border-radius: 20px;
+      background: #cbb7a8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 15px 0 10px;
+      color: #4e3a2c;
+      font-size: 0.9rem;
+      gap: 6px;
+    }
+
+    .dev-name {
+      font-weight: 650;
+      font-size: 1.7rem;
+      letter-spacing: -0.01em;
+      margin-bottom: 8px;
+      color: #3a2c22;
+      padding-left: 6px;
+    }
+
+    .dev-bio {
+      font-size: 0.95rem;
+      color: #6b5848;
+      padding-left: 6px;
+      margin-bottom: 18px;
+      border-left: 3px solid #c8aa99;
+      padding-left: 16px;
+    }
+
+    .media-hint {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 18px;
+      padding: 10px 12px;
+      background: #e9ddd2;
+      border-radius: 40px;
+      font-size: 0.9rem;
+      color: #3e2e23;
+    }
+
+    .media-hint span {
+      font-size: 1.5rem;
+    }
+
+    /* 开发者信息弹窗 (轻提示风格，但可作为内嵌展开) */
+    .dev-expanded {
+      margin-top: 20px;
+      padding-top: 6px;
+    }
+
+    .dev-expanded-content {
+      display: none;
+      background: #fffaf5;
+      border-radius: 24px;
+      padding: 18px 16px;
+      margin-top: 16px;
+      border: 1px solid #e3d4c8;
+    }
+
+    .dev-expanded-content.show {
+      display: block;
+    }
+
+    .extra-video {
+      width: 100%;
+      border-radius: 18px;
+      margin: 12px 0 6px;
+      background: #2b1e14;
+    }
+
+    .extra-img {
+      width: 100%;
+      border-radius: 18px;
+      margin-top: 8px;
+    }
+
+    .close-extra {
+      background: none;
+      border: 1px solid #b8a08e;
+      color: #4f3e32;
+      padding: 8px 16px;
+      border-radius: 30px;
+      margin-top: 16px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      width: 100%;
+      font-weight: 500;
+      transition: 0.1s;
+    }
+
+    .close-extra:hover {
+      background: #dacbc0;
+    }
+
+    /* ----- 中间区域：任务板块 (卡片网格) 开发者可修改标题/图片 ----- */
+    .tasks-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .section-title {
+      font-size: 1.8rem;
+      font-weight: 500;
+      margin-bottom: 22px;
+      color: #4b382b;
+      letter-spacing: -0.3px;
+      border-bottom: 2px dashed #d9c6b8;
+      padding-bottom: 8px;
+    }
+
+    .task-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 24px;
+    }
+
+    /* 任务卡片 —— 开发者可修改标题、添加图片 */
+    .task-card {
+      background: #fffbf8;
+      border-radius: 30px;
+      padding: 20px 18px 22px;
+      box-shadow: 0 8px 18px -6px rgba(70, 50, 40, 0.06);
+      border: 1px solid #f1e4db;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .task-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 28px -12px rgba(110, 70, 50, 0.15);
+      border-color: #dac1b1;
+      background: white;
+    }
+
+    .task-thumb {
+      width: 100%;
+      aspect-ratio: 4/3;
+      border-radius: 22px;
+      background: #e7dbd1;
+      margin-bottom: 16px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .task-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.3s;
+    }
+
+    .task-card:hover .task-thumb img {
+      transform: scale(1.02);
+    }
+
+    .task-title {
+      font-size: 1.4rem;
+      font-weight: 620;
+      margin-bottom: 8px;
+      color: #382e27;
+    }
+
+    .task-meta {
+      font-size: 0.9rem;
+      color: #8f7a6a;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: auto;
+    }
+
+    .badge {
+      background: #e8d7cc;
+      padding: 4px 10px;
+      border-radius: 30px;
+      font-size: 0.75rem;
+      color: #4e3a2c;
+    }
+
+    /* 板块分区锚点 (用于快捷键跳转) */
+    .section-anchor {
+      scroll-margin-top: 30px;
+    }
+
+    /* 最底部留出空间 */
+    .footer-space {
+      height: 60px;
+    }
+
+    /* ----- 右侧快捷键 (固定浮动) 鼠标悬停显示中文解释 ----- */
+    .shortcut-panel {
+      flex: 0 0 60px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 18px;
+      position: sticky;
+      top: 24px;
+      height: fit-content;
+    }
+
+    .shortcut-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 54px;
+      height: 54px;
+      background: #f1e8e1;
+      border-radius: 30px;
+      box-shadow: 0 5px 12px rgba(0,0,0,0.03);
+      border: 1px solid #dacbc1;
+      color: #4e3f35;
+      font-size: 1.8rem;
+      font-weight: 300;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-decoration: none;
+      position: relative;
+      backdrop-filter: blur(4px);
+      background: rgba(250, 240, 232, 0.8);
+    }
+
+    .shortcut-btn:hover {
+      background: #dccfc4;
+      border-color: #b7a090;
+      transform: scale(1.05);
+    }
+
+    /* 中文提示 (鼠标悬停出现) */
+    .shortcut-btn::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      right: 70px;
+      background: #2f241e;
+      color: #f2e5da;
+      font-size: 0.9rem;
+      padding: 8px 16px;
+      border-radius: 40px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      font-weight: 400;
+      letter-spacing: 0.3px;
+      z-index: 100;
+    }
+
+    .shortcut-btn:hover::after {
+      opacity: 1;
+    }
+
+    /* 响应式 */
+    @media (max-width: 800px) {
+      .app-wrapper {
+        flex-direction: column;
+        padding: 16px;
+      }
+      .dev-corner {
+        position: static;
+        width: 100%;
+      }
+      .shortcut-panel {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        top: auto;
+        flex-direction: row;
+        background: rgba(255,250,240,0.6);
+        backdrop-filter: blur(12px);
+        padding: 8px 14px;
+        border-radius: 60px;
+        border: 1px solid #e2d2c6;
+        gap: 12px;
+        z-index: 50;
+      }
+      .shortcut-btn::after {
+        right: auto;
+        left: 70px;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+    }
+
+    /* 开发者信息区内的说明 */
+    .dev-note {
+      font-size: 0.8rem;
+      color: #7d6858;
+      margin-top: 12px;
+      border-top: 1px dashed #dacbc0;
+      padding-top: 12px;
+    }
+  </style>
+</head>
+<body>
+<div class="app-wrapper">
+  <!-- 左上角：开发者信息 (可点击浏览图片与视频) -->
+  <aside class="dev-corner">
+    <div class="dev-clickable" id="devInfoToggle">
+      <div class="dev-avatar">
+        <!-- 开发者头像图片 (可替换) 图片生动 -->
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='45' r='35' fill='%23b7a089'/%3E%3Ccircle cx='35' cy='38' r='5' fill='%23f1e9e2'/%3E%3Ccircle cx='65' cy='38' r='5' fill='%23f1e9e2'/%3E%3Cpath d='M38 58 Q50 70,62 58' stroke='%2344332a' stroke-width='3' fill='none' stroke-linecap='round' /%3E%3C/svg%3E"
+             alt="开发者头像">
+      </div>
+      <div class="dev-name">林一·Ombre</div>
+      <div class="dev-bio">全栈设计师 · 笔记本收藏家</div>
+    </div>
+    <!-- 点击后展开图片+视频区域 (视频占位但保留图片) -->
+    <div class="dev-expanded-content" id="devExtraPanel">
+      <div style="font-weight: 600; margin-bottom: 12px;">📸 开发者的瞬间</div>
+      <!-- 额外图片展示（开发者可替换） -->
+      <img class="extra-img" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200' viewBox='0 0 400 200'%3E%3Crect width='400' height='200' fill='%23cfb9a8'/%3E%3Ctext x='30' y='100' font-family='system-ui' font-size='26' fill='%233e2c1f'%3E☕ 工作台%3C/text%3E%3Ctext x='30' y='140' font-size='18' fill='%235d4738'%3E2026 · Ombre Studio%3C/text%3E%3C/svg%3E" alt="工作台">
+      
+      <!-- 视频区域：根据要求暂时跳过视频展示，但保留一个静态占位符，符合“含有图片与视频”但暂时跳过视频部分 —— 用图片代替视频区域，但提示开发者 -->
+      <div class="dev-video-placeholder">
+        <span>🎬</span> 视频即将上线 · 点击预览图
+      </div>
+      <!-- 再加一张生动图片 (仍属于开发者信息内的图片) -->
+      <img class="extra-img" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='150' viewBox='0 0 400 150'%3E%3Crect width='400' height='150' fill='%23b7a18b'/%3E%3Ctext x='30' y='70' fill='%23f2e1d3' font-size='24' font-family='system-ui'%3E📓 Ombre 手稿%3C/text%3E%3Ctext x='30' y='105' fill='%23ede0d5' font-size='16'%3E开发者日常%3C/text%3E%3C/svg%3E" alt="手稿">
+      
+      <button class="close-extra" id="closeDevPanel">收起面板</button>
+      <div class="dev-note">点击上方头像区域可切换展开/收起</div>
+    </div>
+    <!-- 提示：包含图片与视频（视频占位） -->
+    <div class="media-hint">
+      <span>🖼️</span> 点击头像查看图片与视频预览
+    </div>
+  </aside>
+
+  <!-- 中间较大部分：任务板块（开发者可修改标题，添加图片） -->
+  <main class="tasks-main">
+    <!-- 为快捷键“至各个板块分区”设定锚点 -->
+    <div id="tasks-section" class="section-anchor"></div>
+    <h2 class="section-title">📋 任务板块 · 点击卡片进入</h2>
+    <div class="task-grid">
+      <!-- 任务卡片 1 —— 开发者可修改标题与图片 -->
+      <a href="#" class="task-card" onclick="alert('任务详情页: 设计系统 (开发者可替换链接)'); return false;">
+        <div class="task-thumb">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'%3E%3Crect width='300' height='200' fill='%23d4bfae'/%3E%3Ctext x='30' y='110' font-size='28' fill='%233f2e22' font-family='system-ui'%3E🎨 设计系统%3C/text%3E%3C/svg%3E" alt="设计系统">
+        </div>
+        <div class="task-title">设计系统 2.0</div>
+        <div class="task-meta"><span class="badge">进行中</span> 更新于今日</div>
+      </a>
+      <!-- 任务卡片 2 -->
+      <a href="#" class="task-card" onclick="alert('任务详情: 原型评审 (开发者可替换)'); return false;">
+        <div class="task-thumb">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'%3E%3Crect width='300' height='200' fill='%23bc9f8b'/%3E%3Ctext x='30' y='110' font-size='26' fill='%23fff4ea' font-family='system-ui'%3E📱 原型评审%3C/text%3E%3C/svg%3E" alt="原型评审">
+        </div>
+        <div class="task-title">移动端原型</div>
+        <div class="task-meta"><span class="badge">待反馈</span> 3项评论</div>
+      </a>
+      <!-- 任务卡片 3 -->
+      <a href="#" class="task-card" onclick="alert('任务: 用户研究 (可替换)'); return false;">
+        <div class="task-thumb">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'%3E%3Crect width='300' height='200' fill='%23c9af9b'/%3E%3Ctext x='30' y='110' font-size='24' fill='%23261e18' font-family='system-ui'%3E🔍 用户访谈%3C/text%3E%3C/svg%3E" alt="用户访谈">
+        </div>
+        <div class="task-title">用户研究·笔记</div>
+        <div class="task-meta"><span class="badge">计划中</span> 下周启动</div>
+      </a>
+      <!-- 任务卡片 4 展示更多可修改内容 -->
+      <a href="#" class="task-card" onclick="alert('任务: 前端组件库'); return false;">
+        <div class="task-thumb">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'%3E%3Crect width='300' height='200' fill='%23b29b89'/%3E%3Ctext x='30' y='110' font-size='24' fill='%23f2ede7' font-family='system-ui'%3E🧩 组件库%3C/text%3E%3C/svg%3E" alt="组件库">
+        </div>
+        <div class="task-title">Ombre UI 组件</div>
+        <div class="task-meta"><span class="badge">更新</span> v0.4.2</div>
+      </a>
+      <!-- 任务卡片 5 预留展示“开发者可修改标题/图片” -->
+      <a href="#" class="task-card" onclick="alert('任务板块: 文档撰写'); return false;">
+        <div class="task-thumb">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'%3E%3Crect width='300' height='200' fill='%23b7a394'/%3E%3Ctext x='30' y='110' font-size='26' fill='%2330251c' font-family='system-ui'%3E📄 文档%3C/text%3E%3C/svg%3E" alt="文档">
+        </div>
+        <div class="task-title">使用指南 & 笔记</div>
+        <div class="task-meta"><span class="badge">编写中</span></div>
+      </a>
+    </div>
+    <!-- 提示开发者可修改区域 -->
+    <div style="margin-top: 28px; padding: 12px 16px; background: #efe5dd; border-radius: 40px; color: #4f3c2e; font-size: 0.9rem; display: inline-block;">
+      ✏️ 开发者：可在代码中直接修改任务卡片标题、图片src，以及添加新卡片。
+    </div>
+    <!-- 板块分区底端锚点（用于快捷键） -->
+    <div id="bottom-anchor" style="height: 10px;"></div>
+  </main>
+
+  <!-- 最右侧区域：三个快捷键，鼠标悬停显示中文解释 -->
+  <div class="shortcut-panel">
+    <!-- 至页面最顶端 -->
+    <a href="#" class="shortcut-btn" data-tooltip="回到页面最顶端" title="">↑</a>
+    <!-- 至页面最下端 -->
+    <a href="#bottom-anchor" class="shortcut-btn" data-tooltip="前往页面最下端" title="">↓</a>
+    <!-- 至各个板块分区 (跳转到任务板块区域) -->
+    <a href="#tasks-section" class="shortcut-btn" data-tooltip="跳转至任务板块分区" title="">📋</a>
+  </div>
+</div>
+
+<!-- 底部留白，确保下端快捷键滚动位置准确 -->
+<div class="footer-space"></div>
+
+<script>
+  (function() {
+    // 开发者信息面板切换（点击头像区域展开/收起）
+    const devToggle = document.getElementById('devInfoToggle');
+    const extraPanel = document.getElementById('devExtraPanel');
+    const closeBtn = document.getElementById('closeDevPanel');
+
+    function togglePanel(show) {
+      if (show === undefined) {
+        extraPanel.classList.toggle('show');
+      } else if (show) {
+        extraPanel.classList.add('show');
+      } else {
+        extraPanel.classList.remove('show');
+      }
+    }
+
+    devToggle.addEventListener('click', function(e) {
+      e.preventDefault();
+      togglePanel();
+    });
+
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        togglePanel(false);
+      });
+    }
+
+    // 点击任务卡片原本是#链接，但演示已用alert。开发者可替换真实链接。
+    // 同时保证快捷键跳转平滑（浏览器已支持scroll-behavior）
+    // 添加额外的防抖，以及对于“至最底端”和板块分区已经用锚点完成
+
+    // 开发者可后续自由添加内容：如修改标题，图片等 —— 已经体现在HTML中，开发者可编辑。
+    // 增加一个“更新提示”，方便开发者知道哪里改。
+    console.log('✨ OmbreNotebook 已加载。开发者可修改任务卡片标题、图片。快捷键已包含中文提示。');
+    
+    // 确保最底端快捷键跳转到底部 (已有的锚点 #bottom-anchor)
+    // 另：板块分区快捷键指向 tasks-section，已存在。
+  })();
+</script>
+
+<!-- 附加说明：此页面可直接访问，超链接含有ombreNotebook（域名或路径可自定义，但标题与内容已包含） -->
+<!-- 为符合“超链接需含有ombreNotebook”，在title中已体现，并且如果有需要可以将页面部署在如 /ombreNotebook 路径下。 -->
+</body>
+</html>
