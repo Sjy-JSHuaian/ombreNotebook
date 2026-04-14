@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python+爬虫 学习笔记 · OmbreNotebook</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, 'Segoe UI', 'Helvetica Neue', sans-serif;
+            background: #f9f4ef;
+            color: #2e241e;
+            line-height: 1.6;
+            padding: 30px 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: #fffbf8;
+            border-radius: 40px;
+            padding: 40px;
+            box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.08);
+            border: 1px solid #ede3d7;
+        }
+
+        /* 返回按钮 */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 30px;
+            padding: 12px 24px;
+            background: #e9ddd2;
+            border-radius: 40px;
+            text-decoration: none;
+            color: #3a2c22;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: 1px solid #dacbc1;
+        }
+
+        .back-link:hover {
+            background: #dccfc4;
+            transform: translateX(-4px);
+        }
+
+        /* 标题区域 */
+        .page-header {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px dashed #d9c6b8;
+        }
+
+        .page-header h1 {
+            font-size: 2.2rem;
+            font-weight: 600;
+            color: #3a2c22;
+            letter-spacing: -0.5px;
+            margin-bottom: 10px;
+        }
+
+        .page-header .meta {
+            color: #8f7a6a;
+            font-size: 0.95rem;
+            display: flex;
+            gap: 20px;
+        }
+
+        /* 章节卡片 */
+        .chapter {
+            background: #faf5f0;
+            border-radius: 24px;
+            padding: 28px;
+            margin-bottom: 24px;
+            border: 1px solid #ede0d6;
+            transition: box-shadow 0.2s;
+        }
+
+        .chapter:hover {
+            box-shadow: 0 8px 20px -8px rgba(110, 70, 50, 0.1);
+        }
+
+        .chapter-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #4b382b;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .chapter-title .badge {
+            background: #5a9e8f;
+            color: white;
+            font-size: 0.8rem;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-weight: 400;
+        }
+
+        /* 代码块样式 */
+        .code-block {
+            background: #1e2b2c;
+            color: #d4e6c3;
+            padding: 20px;
+            border-radius: 18px;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 18px 0;
+            line-height: 1.5;
+        }
+
+        .code-block .keyword {
+            color: #c792ea;
+        }
+
+        .code-block .string {
+            color: #ecc48d;
+        }
+
+        .code-block .comment {
+            color: #697098;
+        }
+
+        .code-block .function {
+            color: #82aaff;
+        }
+
+        /* 知识点列表 */
+        .knowledge-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .knowledge-list li {
+            padding: 10px 0 10px 28px;
+            position: relative;
+            border-bottom: 1px solid #e8dbd1;
+        }
+
+        .knowledge-list li:last-child {
+            border-bottom: none;
+        }
+
+        .knowledge-list li::before {
+            content: "🐍";
+            position: absolute;
+            left: 0;
+            color: #5a9e8f;
+        }
+
+        /* 表格样式 */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .data-table th {
+            background: #8fbbaf;
+            color: #1e2b2c;
+            font-weight: 600;
+            padding: 14px 16px;
+            text-align: left;
+        }
+
+        .data-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #d0e0d8;
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* 提示框 */
+        .tip-box {
+            background: #e8f3ef;
+            border-left: 5px solid #5a9e8f;
+            padding: 18px 22px;
+            border-radius: 16px;
+            margin: 20px 0;
+        }
+
+        .tip-box strong {
+            color: #2d5a4f;
+        }
+
+        /* 导航目录 */
+        .toc {
+            background: #efe5dd;
+            border-radius: 20px;
+            padding: 20px 25px;
+            margin-bottom: 30px;
+        }
+
+        .toc h3 {
+            margin-bottom: 15px;
+            color: #4b382b;
+        }
+
+        .toc ul {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 30px;
+            list-style: none;
+        }
+
+        .toc a {
+            color: #5d4536;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .toc a:hover {
+            color: #2e1e14;
+            text-decoration: underline;
+        }
+
+        /* 响应式 */
+        @media (max-width: 600px) {
+            .container {
+                padding: 24px 18px;
+            }
+            .page-header h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 返回按钮 -->
+        <a href="index.html" class="back-link">
+            <span>←</span> 返回 OmbreNotebook 任务面板
+        </a>
+
+        <!-- 页面标题 -->
+        <div class="page-header">
+            <h1>🐍 Python基础 + 爬虫开发</h1>
+            <div class="meta">
+                <span>📅 更新于 2026.04.14</span>
+                <span>📚 共 5 章</span>
+                <span>🏷️ 数据分析 · 网络爬虫</span>
+            </div>
+        </div>
+
+        <!-- 快速导航目录 -->
+        <div class="toc">
+            <h3>📑 本章目录</h3>
+            <ul>
+                <li><a href="#ch1">第一章：Python基础语法</a></li>
+                <li><a href="#ch2">第二章：数据类型与容器</a></li>
+                <li><a href="#ch3">第三章：函数与模块</a></li>
+                <li><a href="#ch4">第四章：面向对象编程</a></li>
+                <li><a href="#ch5">第五章：爬虫实战</a></li>
+            </ul>
+        </div>
+
+        <!-- 第一章：Python基础语法 -->
+        <section id="ch1" class="chapter">
+            <div class="chapter-title">
+                <span>第一章：Python基础语法</span>
+                <span class="badge">入门</span>
+            </div>
+            <ul class="knowledge-list">
+                <li><strong>逻辑运算符优先级：</strong><code>not > and > or</code></li>
+                <li><strong>转义字符：</strong><code>\n</code> 换行，<code>\\</code> 表示反斜杠本身</li>
+                <li><strong>多行字符串：</strong>使用三引号 <code>"""内容"""</code></li>
+                <li><strong>注释：</strong>单行用 <code>#</code>，快捷键 <code>Ctrl+/</code></li>
+                <li><strong>数学运算：</strong><code>**</code> 次幂，<code>math.sqrt()</code> 平方根</li>
+                <li><strong>字符串长度：</strong><code>len()</code> 函数</li>
+            </ul>
+            <div class="code-block">
+<span class="comment"># 导入数学模块</span><br>
+<span class="keyword">import</span> math<br><br>
+<span class="comment"># 次幂运算</span><br>
+result = 2 ** 3  <span class="comment"># 结果为 8</span><br><br>
+<span class="comment"># 平方根</span><br>
+sqrt_val = math.sqrt(16)  <span class="comment"># 结果为 4.0</span><br><br>
+<span class="comment"># 字符串操作</span><br>
+name = <span class="string">"Python"</span><br>
+print(<span class="string">f"长度: {len(name)}"</span>)  <span class="comment"># 输出: 长度: 6</span>
+            </div>
+        </section>
+
+        <!-- 第二章：数据类型与容器 -->
+        <section id="ch2" class="chapter">
+            <div class="chapter-title">
+                <span>第二章：数据类型与容器</span>
+                <span class="badge">核心</span>
+            </div>
+            <ul class="knowledge-list">
+                <li><strong>列表(list)：</strong>可变序列，<code>append()</code>添加，<code>remove()</code>删除</li>
+                <li><strong>字典(dict)：</strong>键值对存储，<code>dict.keys()</code>、<code>dict.values()</code>、<code>dict.items()</code></li>
+                <li><strong>元组(tuple)：</strong>不可变序列，定义后不能修改</li>
+                <li><strong>range：</strong>整数数列，<code>range(起始, 结束, 步长)</code></li>
+                <li><strong>列表操作：</strong><code>max()</code>、<code>min()</code>、<code>sorted()</code></li>
+            </ul>
+            <table class="data-table">
+                <tr><th>数据类型</th><th>特点</th><th>示例</th></tr>
+                <tr><td>列表 (list)</td><td>可变、有序</td><td><code>shopping = [1, 2, 3]</code></td></tr>
+                <tr><td>字典 (dict)</td><td>键值对、无序</td><td><code>contacts = {'A': 123, 'B': 456}</code></td></tr>
+                <tr><td>元组 (tuple)</td><td>不可变、有序</td><td><code>example = ('A', 'B')</code></td></tr>
+            </table>
+            <div class="code-block">
+<span class="comment"># 列表操作</span><br>
+shopping_list = [1, 2, 3]<br>
+shopping_list.append(4)  <span class="comment"># [1, 2, 3, 4]</span><br>
+shopping_list.remove(2)  <span class="comment"># [1, 3, 4]</span><br><br>
+<span class="comment"># 字典操作</span><br>
+contacts = {<span class="string">'A'</span>: 1231, <span class="string">'B'</span>: 2134}<br>
+value = contacts[<span class="string">'A'</span>]  <span class="comment"># 获取值</span><br>
+<span class="keyword">del</span> contacts[<span class="string">'A'</span>]  <span class="comment"># 删除键值对</span><br><br>
+<span class="comment"># 遍历字典</span><br>
+<span class="keyword">for</span> key, value <span class="keyword">in</span> contacts.items():<br>
+    print(<span class="string">f"{key}: {value}"</span>)
+            </div>
+        </section>
+
+        <!-- 第三章：函数与模块 -->
+        <section id="ch3" class="chapter">
+            <div class="chapter-title">
+                <span>第三章：函数与模块</span>
+                <span class="badge">重要</span>
+            </div>
+            <ul class="knowledge-list">
+                <li><strong>函数定义：</strong><code>def 函数名(参数):</code>，使用 <code>return</code> 返回值</li>
+                <li><strong>默认返回值：</strong>不写 <code>return</code> 默认返回 <code>None</code></li>
+                <li><strong>f-string格式化：</strong><code>f"{变量:.2f}"</code> 保留两位小数</li>
+                <li><strong>模块导入：</strong><code>import 模块名</code>、<code>from 模块 import 函数</code></li>
+                <li><strong>第三方库安装：</strong><code>pip install 库名</code>（如 akshare）</li>
+                <li><strong>相对路径/绝对路径：</strong>相对从参考位置出发，绝对从根目录出发</li>
+            </ul>
+            <div class="code-block">
+<span class="comment"># 定义函数</span><br>
+<span class="keyword">def</span> <span class="function">calculate_gpa</span>(name, gpa):<br>
+    print(<span class="string">f"{name}你好，你当前的绩点为：{gpa:.2f}"</span>)<br>
+    <span class="keyword">return</span> gpa<br><br>
+<span class="comment"># 导入模块方式</span><br>
+<span class="keyword">import</span> statistics<br>
+<span class="keyword">from</span> math <span class="keyword">import</span> sqrt, pow<br>
+<span class="keyword">from</span> module_name <span class="keyword">import</span> *  <span class="comment"># 导入所有</span><br><br>
+<span class="comment"># 安装第三方库</span><br>
+<span class="comment"># pip install akshare</span>
+            </div>
+            <div class="tip-box">
+                <strong>💡 条件判断示例：</strong>
+                <div class="code-block" style="margin: 10px 0 0 0;">
+score = 85<br>
+<span class="keyword">if</span> score >= 90:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;print(<span class="string">"优秀"</span>)<br>
+<span class="keyword">elif</span> score >= 60:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;print(<span class="string">"及格"</span>)<br>
+<span class="keyword">else</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;print(<span class="string">"不及格"</span>)
+                </div>
+            </div>
+        </section>
+
+        <!-- 第四章：面向对象编程 -->
+        <section id="ch4" class="chapter">
+            <div class="chapter-title">
+                <span>第四章：面向对象编程（OOP）</span>
+                <span class="badge">进阶</span>
+            </div>
+            <ul class="knowledge-list">
+                <li><strong>三大特性：</strong>封装、继承、多态</li>
+                <li><strong>类定义：</strong><code>class 类名:</code>，使用 <code>__init__(self)</code> 初始化</li>
+                <li><strong>创建对象：</strong><code>对象名 = 类名(参数)</code></li>
+                <li><strong>继承：</strong><code>class 子类(父类):</code>，使用 <code>super().__init__()</code> 调用父类</li>
+                <li><strong>方法定义：</strong>第一个参数必须是 <code>self</code></li>
+                <li><strong>类 vs 对象：</strong>类是模板，对象是实例</li>
+            </ul>
+            <div class="code-block">
+<span class="comment"># 定义类</span><br>
+<span class="keyword">class</span> CuteCat:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">def</span> <span class="function">__init__</span>(self, cat_name, age):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.name = cat_name<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.age = age<br><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">def</span> <span class="function">speak</span>(self):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print(<span class="string">"miao"</span> * self.age)<br><br>
+<span class="comment"># 创建对象</span><br>
+cat1 = CuteCat(<span class="string">"咪咪"</span>, 3)<br>
+cat1.speak()  <span class="comment"># 输出: miaomiaomiao</span><br><br>
+<span class="comment"># 继承示例</span><br>
+<span class="keyword">class</span> Student(Person):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">def</span> <span class="function">__init__</span>(self, name, sex, grade):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;super().__init__(name, sex)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.grade = grade
+            </div>
+        </section>
+
+        <!-- 第五章：爬虫实战 -->
+        <section id="ch5" class="chapter">
+            <div class="chapter-title">
+                <span>第五章：爬虫实战技巧</span>
+                <span class="badge">实战</span>
+            </div>
+            <ul class="knowledge-list">
+                <li><strong>获取超链接：</strong>使用 BeautifulSoup 解析 HTML，<code>soup.find_all("div", class_="class名")</code></li>
+                <li><strong>提取链接：</strong><code>a标签['href']</code> 获取超链接地址</li>
+                <li><strong>链接处理：</strong>注意相对路径需要拼接域名前缀</li>
+                <li><strong>爬取礼仪：</strong>设置合理间隔，尊重 robots.txt</li>
+                <li><strong>数据存储：</strong>使用字典存储 {标题: 链接}</li>
+                <li><strong>文档生成：</strong>使用 python-docx 创建 Word 文档</li>
+            </ul>
+            <div class="code-block">
+<span class="comment"># 爬虫核心代码示例</span><br>
+<span class="keyword">from</span> bs4 <span class="keyword">import</span> BeautifulSoup<br>
+<span class="keyword">import</span> requests<br><br>
+<span class="comment"># 获取页面</span><br>
+url = <span class="string">"https://example.com"</span><br>
+response = requests.get(url)<br>
+soup = BeautifulSoup(response.text, <span class="string">'html.parser'</span>)<br><br>
+<span class="comment"># 查找所有链接</span><br>
+links_div = soup.find_all(<span class="string">"div"</span>, class_=<span class="string">"info_cate clearfix"</span>)<br><br>
+<span class="comment"># 提取超链接</span><br>
+links_dict = {}<br>
+<span class="keyword">for</span> div <span class="keyword">in</span> links_div:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;a_tags = div.find_all(<span class="string">'a'</span>)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">for</span> a <span class="keyword">in</span> a_tags:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;title = a.text.strip()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;link = a.get(<span class="string">'href'</span>)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;links_dict[title] = link
+            </div>
+            <div class="code-block">
+<span class="comment"># 生成Word文档</span><br>
+<span class="keyword">from</span> docx <span class="keyword">import</span> Document<br><br>
+doc = Document()<br>
+style = doc.styles[<span class="string">'Normal'</span>]<br><br>
+<span class="comment"># 添加标题和内容</span><br>
+doc.add_heading(<span class="string">'爬虫结果'</span>, level=1)<br>
+doc.add_paragraph(<span class="string">'这是爬取的内容...'</span>)<br>
+doc.save(<span class="string">'result.docx'</span>)
+            </div>
+            <div class="tip-box">
+                <strong>🕷️ 爬虫要点总结：</strong><br>
+                1. 找到目标 div（class='info_txt clearfix'）<br>
+                2. 定位到 dd 标签，再找所有 a 标签<br>
+                3. 提取 href 属性获取链接<br>
+                4. 注意处理相对路径（加域名前缀）<br>
+                5. 使用 enumerate + zip 同时遍历标题和内容<br>
+                6. 用 try-except 处理异常
+            </div>
+        </section>
+
+        <!-- 附加：单元测试 -->
+        <section class="chapter">
+            <div class="chapter-title">
+                <span>补充：单元测试</span>
+                <span class="badge">测试</span>
+            </div>
+            <ul class="knowledge-list">
+                <li><strong>assert：</strong>断言，返回布尔值，用于验证预期结果</li>
+                <li><strong>unittest：</strong>Python 自带的标准测试库</li>
+                <li><strong>测试类命名：</strong><code>class TestName:</code></li>
+            </ul>
+            <div class="code-block">
+<span class="comment"># unittest 示例</span><br>
+<span class="keyword">import</span> unittest<br><br>
+<span class="keyword">class</span> TestMath(unittest.TestCase):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">def</span> <span class="function">test_add</span>(self):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.assertEqual(1 + 1, 2)<br><br>
+<span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;unittest.main()
+            </div>
+        </section>
+
+        <!-- 页脚 -->
+        <div style="margin-top: 40px; text-align: center; color: #8f7a6a; padding-top: 20px; border-top: 1px dashed #d9c6b8;">
+            <p>📓 OmbreNotebook · Python + 爬虫 学习笔记</p>
+            <p style="margin-top: 10px; font-size: 0.85rem;">开发者可随时更新此页面内容</p>
+        </div>
+    </div>
+</body>
+</html>
