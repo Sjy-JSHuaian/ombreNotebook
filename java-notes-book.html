@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Java+AI 学习笔记 · OmbreNotebook</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, 'Segoe UI', 'Helvetica Neue', sans-serif;
+            background: #f9f4ef;
+            color: #2e241e;
+            line-height: 1.6;
+            padding: 30px 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: #fffbf8;
+            border-radius: 40px;
+            padding: 40px;
+            box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.08);
+            border: 1px solid #ede3d7;
+        }
+
+        /* 返回按钮 */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 30px;
+            padding: 12px 24px;
+            background: #e9ddd2;
+            border-radius: 40px;
+            text-decoration: none;
+            color: #3a2c22;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: 1px solid #dacbc1;
+        }
+
+        .back-link:hover {
+            background: #dccfc4;
+            transform: translateX(-4px);
+        }
+
+        /* 标题区域 */
+        .page-header {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px dashed #d9c6b8;
+        }
+
+        .page-header h1 {
+            font-size: 2.2rem;
+            font-weight: 600;
+            color: #3a2c22;
+            letter-spacing: -0.5px;
+            margin-bottom: 10px;
+        }
+
+        .page-header .meta {
+            color: #8f7a6a;
+            font-size: 0.95rem;
+            display: flex;
+            gap: 20px;
+        }
+
+        /* 章节卡片 */
+        .chapter {
+            background: #faf5f0;
+            border-radius: 24px;
+            padding: 28px;
+            margin-bottom: 24px;
+            border: 1px solid #ede0d6;
+            transition: box-shadow 0.2s;
+        }
+
+        .chapter:hover {
+            box-shadow: 0 8px 20px -8px rgba(110, 70, 50, 0.1);
+        }
+
+        .chapter-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #4b382b;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .chapter-title .badge {
+            background: #c8aa99;
+            color: white;
+            font-size: 0.8rem;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-weight: 400;
+        }
+
+        /* 代码块样式 */
+        .code-block {
+            background: #2d241e;
+            color: #e8dccc;
+            padding: 20px;
+            border-radius: 18px;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 18px 0;
+            line-height: 1.5;
+        }
+
+        .code-block .keyword {
+            color: #c792ea;
+        }
+
+        .code-block .string {
+            color: #c3e88d;
+        }
+
+        .code-block .comment {
+            color: #697098;
+        }
+
+        /* 知识点列表 */
+        .knowledge-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .knowledge-list li {
+            padding: 10px 0 10px 28px;
+            position: relative;
+            border-bottom: 1px solid #e8dbd1;
+        }
+
+        .knowledge-list li:last-child {
+            border-bottom: none;
+        }
+
+        .knowledge-list li::before {
+            content: "📌";
+            position: absolute;
+            left: 0;
+            color: #b7a089;
+        }
+
+        /* 表格样式 */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .data-table th {
+            background: #d4bfae;
+            color: #2e241e;
+            font-weight: 600;
+            padding: 14px 16px;
+            text-align: left;
+        }
+
+        .data-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e8dbd1;
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* 提示框 */
+        .tip-box {
+            background: #fff3e6;
+            border-left: 5px solid #c8aa99;
+            padding: 18px 22px;
+            border-radius: 16px;
+            margin: 20px 0;
+        }
+
+        .tip-box strong {
+            color: #6b4f3c;
+        }
+
+        /* 导航目录 */
+        .toc {
+            background: #efe5dd;
+            border-radius: 20px;
+            padding: 20px 25px;
+            margin-bottom: 30px;
+        }
+
+        .toc h3 {
+            margin-bottom: 15px;
+            color: #4b382b;
+        }
+
+        .toc ul {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 30px;
+            list-style: none;
+        }
+
+        .toc a {
+            color: #5d4536;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .toc a:hover {
+            color: #2e1e14;
+            text-decoration: underline;
+        }
+
+        /* 响应式 */
+        @media (max-width: 600px) {
+            .container {
+                padding: 24px 18px;
+            }
+            .page-header h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 返回按钮 -->
+        <a href="index.html" class="back-link">
+            <span>←</span> 返回 OmbreNotebook 任务面板
+        </a>
+
+        <!-- 页面标题 -->
+        <div class="page-header">
+            <h1>☕ Java核心语法 + AI开发基础</h1>
+            <div class="meta">
+                <span>📅 更新于 2026.04.14</span>
+                <span>📚 共 9 章</span>
+                <span>🏷️ 后端开发 · 人工智能</span>
+            </div>
+        </div>
+
+        <!-- 快速导航目录 -->
+        <div class="toc">
+            <h3>📑 本章目录</h3>
+            <ul>
+                <li><a href="#ch1">第一章：Java简介与环境</a></li>
+                <li><a href="#ch2">第二章：注释与关键字</a></li>
+                <li><a href="#ch3">第三章：变量与数据类型</a></li>
+                <li><a href="#ch4">第四章：循环与数组</a></li>
+                <li><a href="#ch5">第五章：方法与重载</a></li>
+                <li><a href="#ch6">第六章：Java运行机制</a></li>
+                <li><a href="#ch7">第七章：面向对象基础</a></li>
+                <li><a href="#ch8">第八章：构造方法</a></li>
+                <li><a href="#ch9">第九章：内存原理</a></li>
+            </ul>
+        </div>
+
+        <!-- 第一章 -->
+        <section id="ch1" class="chapter">
+            <div class="chapter-title">
+                <span>第一章：Java简介与环境搭建</span>
+                <span class="badge">入门</span>
+            </div>
+            <ul class="knowledge-list">
+                <li><strong>Java是什么：</strong>1995年Sun公司推出，詹姆斯·高斯林创造。应用领域：大数据、游戏、企业服务、移动端、AI智能化。</li>
+                <li><strong>JDK下载：</strong>访问 oracle.com → Products → Java → 选择LTS版本（JDK8/11/17/21/25）</li>
+                <li><strong>环境变量配置：</strong>高级系统设置 → 环境变量 → Path → 添加JDK的bin目录路径</li>
+                <li><strong>开发工具：</strong>IntelliJ IDEA（www.jetbrains.com.cn）</li>
+                <li><strong>验证安装：</strong>CMD中输入 <code>java -version</code></li>
+            </ul>
+            <div class="tip-box">
+                <strong>💡 第一个程序：</strong>
+                <div class="code-block">
+<span class="comment">// HelloWorld.java</span><br>
+<span class="keyword">public class</span> HelloWorld {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">public static void</span> main(String[] args) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;System.out.println(<span class="string">"Hello World"</span>);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+}
+                </div>
+            </div>
+        </section>
+
+        <!-- 第二章 -->
+        <section id="ch2" class="chapter">
+            <div class="chapter-title">
+                <span>第二章：注释与关键字</span>
+                <span class="badge">基础</span>
+            </div>
+            <ul class="knowledge-list">
+                <li><strong>单行注释：</strong><code>// 注释内容</code> —— 快捷键 Ctrl+/</li>
+                <li><strong>多行注释：</strong><code>/* 注释内容 */</code> —— 快捷键 Ctrl+Shift+/</li>
+                <li><strong>文档注释：</strong><code>/** 文档注释 */</code></li>
+                <li><strong>关键字：</strong>被Java赋予特殊含义的单词，全部小写，如 public、class、static、void</li>
+            </ul>
+            <div class="code-block">
+<span class="comment">// 这是单行注释</span><br>
+<span class="comment">/* 这是多行注释 */</span><br>
+<span class="keyword">public class</span> HelloWorld2 {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">public static void</span> main(String[] args) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;System.out.println(<span class="string">"Hello World"</span>);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+}
+            </div>
+        </section>
+
+        <!-- 第三章 -->
+        <section id="ch3" class="chapter">
+            <div class="chapter-title">
+                <span>第三章：变量与数据类型</span>
+                <span class="badge">核心</span>
+            </div>
+            <ul class="knowledge-list">
+                <li><strong>变量定义：</strong><code>数据类型 变量名 = 数据值;</code> 如 <code>int a = 10;</code></li>
+                <li><strong>基本数据类型：</strong>byte、short、int、long、float、double、char、boolean</li>
+                <li><strong>类型大小顺序：</strong>double > float > long > int > short > byte</li>
+                <li><strong>命名规范：</strong>小驼峰命名法，如 userName、studentAge</li>
+                <li><strong>键盘录入：</strong>使用 Scanner 类接收用户输入</li>
+            </ul>
+            <table class="data-table">
+                <tr><th>数据类型</th><th>大小</th><th>示例</th></tr>
+                <tr><td>byte</td><td>1字节</td><td><code>byte b = 127;</code></td></tr>
+                <tr><td>short</td><td>2字节</td><td><code>short s = 32767;</code></td></tr>
+                <tr><td>int</td><td>4字节</td><td><code>int i = 200;</code></td></tr>
+                <tr><td>long</td><td>8字节</td><td><code>long l = 100L;</code> (需加L)</td></tr>
+                <tr><td>float</td><td>4字节</td><td><code>float f = 11F;</code> (需加F)</td></tr>
+                <tr><td>double</td><td>8字节</td><td><code>double d = 3.14;</code></td></tr>
+                <tr><td>char</td><td>2字节</td><td><code>char c = '中';</code></td></tr>
+                <tr><td>boolean</td><td>1字节</td><td><code>boolean flag = true;</code></td></tr>
+            </table>
+            <div class="code-block">
+<span class="comment">// Scanner 键盘录入示例</span><br>
+<span class="keyword">import</span> java.util.Scanner;<br><br>
+Scanner sc = <span class="keyword">new</span> Scanner(System.in);<br>
+<span class="keyword">int</span> num = sc.nextInt();&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// 接收整数</span><br>
+<span class="keyword">double</span> d = sc.nextDouble();&nbsp;&nbsp;<span class="comment">// 接收小数</span><br>
+String str = sc.next();&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// 接收字符串</span>
+            </div>
+        </section>
+
+        <!-- 第四章 -->
+        <section id="ch4" class="chapter">
+            <div class="chapter-title">
+                <span>第四章：循环与数组</span>
+                <span class="badge">重要</span>
+            </div>
+            <ul class="knowledge-list">
+                <li><strong>break：</strong>结束整个循环，跳出循环体</li>
+                <li><strong>continue：</strong>结束本次循环，继续下一次循环</li>
+                <li><strong>数组静态初始化：</strong><code>int[] arr = {1, 2, 3, 4};</code> 或 <code>int[] arr = new int[]{1,2,3};</code></li>
+                <li><strong>数组动态初始化：</strong><code>int[] arr = new int[5];</code> (指定长度，系统赋默认值)</li>
+                <li><strong>数组特点：</strong>长度一旦定义不可改变；索引从0开始</li>
+            </ul>
+            <div class="code-block">
+<span class="comment">// 数组遍历</span><br>
+<span class="keyword">int</span>[] arr = {1, 2, 3, 4, 5};<br>
+<span class="keyword">for</span> (<span class="keyword">int</span> i = 0; i < arr.length; i++) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;System.out.println(arr[i]);<br>
+}<br><br>
+<span class="comment">// 增强for循环</span><br>
+<span class="keyword">for</span> (<span class="keyword">int</span> num : arr) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;System.out.println(num);<br>
+}
+            </div>
+            <div class="tip-box">
+                <strong>⚠️ 常见问题：</strong>数组索引越界 ArrayIndexOutOfBoundsException —— 确保索引在 0 到 length-1 范围内。
+            </div>
+        </section>
+
+        <!-- 第五章 -->
+        <section id="ch5" class="chapter">
+            <div class="chapter-title">
+                <span>第五章：方法与重载</span>
+                <span class="badge">核心</span>
+            </div>
+            <ul class="knowledge-list">
+                <li><strong>方法定义格式：</strong><code>public static 返回值类型 方法名(参数) { 方法体; return 返回值; }</code></li>
+                <li><strong>方法重载：</strong>同一个类中，方法名相同，参数列表不同（个数、类型、顺序）</li>
+                <li><strong>重载规则：</strong>与返回值类型无关，只与参数有关</li>
+                <li><strong>方法的好处：</strong>提高代码复用性和可维护性</li>
+            </ul>
+            <div class="code-block">
+<span class="comment">// 方法重载示例</span><br>
+<span class="keyword">public class</span> Calculator {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">public static int</span> add(<span class="keyword">int</span> a, <span class="keyword">int</span> b) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> a + b;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">public static double</span> add(<span class="keyword">double</span> a, <span class="keyword">double</span> b) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> a + b;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+}
+            </div>
+        </section>
+
+        <!-- 第六章 -->
+        <section id="ch6" class="chapter">
+            <div class="chapter-title">
+                <span>第六章：Java运行机制与内存</span>
+                <span class="badge">原理</span>
+            </div>
+            <ul class="knowledge-list">
+                <li><strong>编译与运行：</strong>.java 源文件 → 编译(javac) → .class 字节码 → JVM运行</li>
+                <li><strong>跨平台原理：</strong>Write Once, Run Anywhere —— JVM虚拟机屏蔽底层差异</li>
+                <li><strong>JVM内存分区：</strong>栈(方法调用)、堆(new的对象)、方法区(字节码)、本地方法栈、程序计数器</li>
+                <li><strong>基本数据类型：</strong>变量存储真实数据值</li>
+                <li><strong>引用数据类型：</strong>变量存储内存地址值</li>
+            </ul>
+            <div class="tip-box">
+                <strong>🧠 内存地址规则：</strong><br>
+                32位系统最大支持 2³² = 4GB 内存<br>
+                64位系统最大支持 2⁶⁴ ≈ 17179TB
+            </div>
+        </section>
+
+        <!-- 第七章 -->
+        <section id="ch7" class="chapter">
+            <div class="chapter-title">
+                <span>第七章：面向对象基础</span>
+                <span class="badge">核心</span>
+            </div>
+            <ul class="knowledge-list">
+                <li><strong>面向对象思想：</strong>把数据和方法组织为一个整体，利用对象进行软件开发</li>
+                <li><strong>类的定义：</strong>JavaBean类（属性+行为）和测试类（带main方法）</li>
+                <li><strong>创建对象：</strong><code>类名 对象名 = new 类名();</code></li>
+                <li><strong>private关键字：</strong>私有化成员变量，提供public的get/set方法访问</li>
+                <li><strong>this关键字：</strong>区分成员变量和局部变量，代表当前对象</li>
+            </ul>
+            <div class="code-block">
+<span class="comment">// 标准JavaBean类</span><br>
+<span class="keyword">public class</span> Dog {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">private</span> String name;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">private int</span> age;<br><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">public void</span> setName(String name) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">this</span>.name = name;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">public</span> String getName() {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> name;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+}
+            </div>
+        </section>
+
+        <!-- 第八章 -->
+        <section id="ch8" class="chapter">
+            <div class="chapter-title">
+                <span>第八章：构造方法</span>
+                <span class="badge">重要</span>
+            </div>
+            <ul class="knowledge-list">
+                <li><strong>构造方法格式：</strong><code>修饰符 类名(参数) { 方法体; }</code></li>
+                <li><strong>特点：</strong>方法名与类名相同；无返回值类型（void也不写）；创建对象时自动调用</li>
+                <li><strong>默认构造方法：</strong>如果不写，系统自动提供无参构造；如果写了任意构造方法，默认构造消失</li>
+                <li><strong>构造方法重载：</strong>无参构造 + 带参构造，两者构成重载</li>
+                <li><strong>习惯：</strong>无论是否使用，都手动写无参构造和带全部参数的构造</li>
+            </ul>
+            <div class="code-block">
+<span class="keyword">public class</span> Student {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">private</span> String name;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">private int</span> age;<br><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// 无参构造</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">public</span> Student() {}<br><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// 带参构造</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">public</span> Student(String name, <span class="keyword">int</span> age) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">this</span>.name = name;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">this</span>.age = age;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+}
+            </div>
+        </section>
+
+        <!-- 第九章 -->
+        <section id="ch9" class="chapter">
+            <div class="chapter-title">
+                <span>第九章：面向对象原理篇</span>
+                <span class="badge">进阶</span>
+            </div>
+            <ul class="knowledge-list">
+                <li><strong>对象创建流程：</strong>加载class → 声明变量 → 堆中开辟空间 → 默认初始化 → 显示初始化 → 构造方法初始化 → 赋值地址</li>
+                <li><strong>方法调用：</strong>进栈执行，执行完毕出栈，局部变量消失</li>
+                <li><strong>对象传递：</strong>传递的是内存地址值，多个变量指向同一对象时会相互影响</li>
+                <li><strong>垃圾回收：</strong>没有任何引用指向的对象会被JVM回收</li>
+                <li><strong>this本质：</strong>代表所在方法调用者的内存地址</li>
+            </ul>
+            <div class="tip-box">
+                <strong>📌 总结：JavaBean类标准写法</strong><br>
+                1. 私有化成员变量 (private)<br>
+                2. 提供无参构造方法<br>
+                3. 提供带全部参数的构造方法<br>
+                4. 提供public的get/set方法
+            </div>
+        </section>
+
+        <!-- 页脚 -->
+        <div style="margin-top: 40px; text-align: center; color: #8f7a6a; padding-top: 20px; border-top: 1px dashed #d9c6b8;">
+            <p>📓 OmbreNotebook · Java + AI 学习笔记</p>
+            <p style="margin-top: 10px; font-size: 0.85rem;">开发者可随时更新此页面内容</p>
+        </div>
+    </div>
+</body>
+</html>
